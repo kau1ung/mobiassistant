@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>MabiAssistant</title>
+    <style>
+        :root { --primary: #3b5bdb; --bg: #f8f9fa; --card: #ffffff; --text: #333; --muted: #adb5bd; --accent-blue: #5c7cfa; --done-bg: #f1f3f5; }
+        body { margin: 0; font-family: 'Pretendard', sans-serif; background: var(--bg); display: flex; height: 100vh; color: var(--text); overflow: hidden; }
+        #sidebar { width: 280px; background: white; box-shadow: 2px 0 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; z-index: 10; }
+        .logo-area { padding: 30px 25px; cursor: pointer; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #f1f3f5; }
+        .logo-icon { width: 32px; height: 32px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
+        .acc-item { padding: 12px 25px; margin: 2px 15px; border-radius: 12px; cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center; }
+        .acc-item.active { background: #edf2ff; color: var(--primary); font-weight: bold; }
+        .edit-btn { opacity: 0.3; cursor: pointer; padding: 5px; }
+        #main { flex: 1; padding: 40px 60px; overflow-y: auto; scroll-behavior: smooth; }
+        .main-title { font-size: 1.8rem; font-weight: 800; margin-bottom: 40px; }
+        .dash-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px; }
+        .acc-card { background: var(--accent-blue); color: white; border-radius: 30px; padding: 30px; min-height: 400px; box-shadow: 0 15px 30px rgba(92, 124, 250, 0.2); }
+        .acc-card-title { font-size: 1.5rem; font-weight: 800; text-align: center; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 15px; }
+        .dash-row { display: flex; margin-bottom: 15px; gap: 15px; }
+        .dash-cat-label { width: 85px; font-weight: 800; font-size: 0.85rem; opacity: 0.8; flex-shrink: 0; }
+        .dash-item-list { flex: 1; font-size: 0.95rem; }
+        .dash-item.done { text-decoration: line-through; opacity: 0.6; }
+        .cat-group { margin-bottom: 50px; }
+        .hw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 30px; }
+        .card { background: white; border-radius: 24px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 2px solid transparent; transition: 0.3s; }
+        .card.done { background: var(--done-bg); border-color: #dee2e6; }
+        .card.done .card-name { text-decoration: line-through; color: #868e96; }
+        .set-control { margin: 15px 0; background: #f8f9fa; padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 10px; font-weight: bold; }
+        .set-input { width: 60px; padding: 8px; border-radius: 8px; border: 1px solid #ddd; text-align: center; }
+        .calc-area { margin-top: 15px; padding: 15px; background: rgba(59, 91, 219, 0.05); border-radius: 16px; font-size: 13px; border: 1px solid rgba(59, 91, 219, 0.1); }
+        .modal { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:40px; border-radius:35px; width:500px; box-shadow:0 40px 80px rgba(0,0,0,0.3); z-index:100; }
+        .overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.3); z-index:90; backdrop-filter: blur(8px); }
+        input, select, textarea { width: 100%; padding: 14px; margin: 8px 0; border: 1px solid #eee; border-radius: 12px; box-sizing: border-box; font-family: inherit; }
+        .btn-row { display: flex; gap: 10px; margin-top: 20px; }
+        .btn { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; transition: 0.2s; }
+        .btn-primary { background: var(--primary); color: white; }
+    </style>
+</head>
+<body>
+
+<div class="overlay" onclick="closeModal()"></div>
+
+<div class="modal" id="hwModal">
+    <h2 style="margin-top:0">📋 숙제 설정</h2>
+    <select id="mCat" onchange="updateModalUI()">
+        <option value="main">⚔️ 메인 컨텐츠</option>
+        <option value="trade">⚖️ 물물교환</option>
+        <option value="craft">⚒️ 제작/채집</option>
+    </select>
+    <input type="text" id="mName" placeholder="숙제 이름을 입력하세요">
+    
+    <div id="tradeFields" style="display:none; gap:10px; display:flex; margin-bottom:10px;">
+        <input type="text" id="mFrom" placeholder="주는 물건" style="flex:1">
+        <span style="align-self:center">➡️</span>
+        <input type="text" id="mTo" placeholder="받는 물건" style="flex:1">
+    </div>
+
+    <textarea id="mDesc" placeholder="상세 설명"></textarea>
+    <select id="mCycle">
+        <option value="daily">매일 (06:00 리셋)</option>
+        <option value="weekly">매주 월요일 (06:00 리셋)</option>
+    </select>
+
+    <div id="resFields" style="display:none;">
+        <div style="background:#f1f3f5; padding:15px; border-radius:12px; margin-bottom:15px;">
+            <label style="font-size:0.85rem; font-weight:bold; color:var(--primary);">기본 제작 세트 수</label>
+            <input type="number" id="mSets" min="1" value="1" style="margin-top:5px;">
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <b style="font-size: 0.9rem;">💎 1세트 기준 재료</b>
+            <button onclick="addResInput()" style="border:none; padding:5px 10px; border-radius:8px; cursor:pointer;">+ 추가</button>
+        </div>
+        <div id="resContainer" style="max-height: 120px; overflow-y: auto;"></div>
+    </div>
+    
+    <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveHw(false)">현재 캐릭터 전용</button>
+        <button class="btn" style="background:#343a40; color:white;" onclick="saveHw(true)">전체 공용 숙제</button>
+    </div>
+    <button id="delBtn" onclick="deleteHw()" style="width:100%; margin-top:10px; background:none; color:#ff6b6b; border:none; cursor:pointer; font-weight:bold; display:none;">삭제하기</button>
+</div>
+
+<aside id="sidebar">
+    <div class="logo-area" onclick="showDashboard()"><div class="logo-icon">M</div><span style="font-weight:900;">MabiAssistant</span></div>
+    <div id="accList" style="margin-top:20px; flex:1; overflow-y:auto;"></div>
+    <button onclick="addAcc()" style="margin:20px; padding:15px; border:2px dashed #eee; background:none; border-radius:15px; cursor:pointer; color:var(--muted); font-weight:bold;">+ 캐릭터 추가</button>
+</aside>
+
+<main id="main"></main>
+
+<script>
+    const CAT_INFO = { main: '⚔️ 메인 컨텐츠', trade: '⚖️ 물물교환', craft: '⚒️ 제작/채집' };
+    let state = JSON.parse(localStorage.getItem('mabiFinalV16')) || { 
+        accs: [], cur: -1, commonItems: [], personalItems: {}, isDash: true, lastReset: Date.now() 
+    };
+
+    function save() { localStorage.setItem('mabiFinalV16', JSON.stringify(state)); render(); }
+
+    function updateModalUI() {
+        const cat = document.getElementById('mCat').value;
+        document.getElementById('resFields').style.display = (cat === 'craft') ? 'block' : 'none';
+        document.getElementById('tradeFields').style.display = (cat === 'trade') ? 'flex' : 'none';
+    }
+
+    function addResInput(n='', c='', g='') {
+        const div = document.createElement('div'); div.style.display="flex"; div.style.gap="5px";
+        div.innerHTML = `<input type="text" placeholder="재료" class="rn" value="${n}"><input type="number" placeholder="개" class="rc" min="0" style="width:60px" value="${c}"><input type="number" placeholder="G" class="rg" min="0" style="width:80px" value="${g}">`;
+        document.getElementById('resContainer').appendChild(div);
+    }
+
+    function openModal(idx = -1, type = 'personal') { 
+        editIdx = idx; editType = type; 
+        document.getElementById('mName').value = ""; document.getElementById('mDesc').value = "";
+        document.getElementById('mFrom').value = ""; document.getElementById('mTo').value = "";
+        document.getElementById('mCat').value = "main"; document.getElementById('mCycle').value = "daily";
+        document.getElementById('mSets').value = "1"; // [수정] 모달 세트수 초기화
+        document.getElementById('resContainer').innerHTML = ""; 
+        document.getElementById('delBtn').style.display = idx > -1 ? 'block' : 'none';
+
+        if(idx > -1) {
+            const it = (type === 'common' ? state.commonItems : state.personalItems[state.accs[state.cur]])[idx];
+            document.getElementById('mName').value = it.name; document.getElementById('mCat').value = it.cat;
+            document.getElementById('mFrom').value = it.from || ""; document.getElementById('mTo').value = it.to || "";
+            document.getElementById('mDesc').value = it.desc || ""; document.getElementById('mCycle').value = it.cycle;
+            document.getElementById('mSets').value = it.sets || 1; // [수정] 기존 세트수 불러오기
+            it.mats.forEach(m => addResInput(m.name, m.count, m.gold));
+        } else { addResInput(); }
+        updateModalUI();
+        document.getElementById('hwModal').style.display = 'block'; document.querySelector('.overlay').style.display = 'block'; 
+    }
+
+    function updateSets(idx, type, val) { 
+        const list = (type === 'common' ? state.commonItems : state.personalItems[state.accs[state.cur]]);
+        list[idx].sets = Math.max(1, Number(val) || 1); save(); 
+    }
+
+    function saveHw(isCommon) {
+        const n = document.getElementById('mName').value; if(!n) return alert("이름 필수!");
+        const ms = Array.from(document.querySelectorAll('#resContainer > div')).map(d => ({
+            name: d.querySelector('.rn').value, count: Math.max(0, Number(d.querySelector('.rc').value) || 0), gold: Math.max(0, Number(d.querySelector('.rg').value) || 0)
+        })).filter(m => m.name);
+
+        const item = { 
+            cat: document.getElementById('mCat').value, name: n, 
+            from: document.getElementById('mFrom').value, to: document.getElementById('mTo').value,
+            desc: document.getElementById('mDesc').value, cycle: document.getElementById('mCycle').value, 
+            mats: ms, 
+            sets: Math.max(1, Number(document.getElementById('mSets').value) || 1), // [수정] 모달 입력값 저장
+            done: false 
+        };
+
+        if(editIdx > -1) {
+            const list = editType === 'common' ? state.commonItems : state.personalItems[state.accs[state.cur]];
+            item.done = list[editIdx].done; list[editIdx] = item;
+        } else {
+            if(isCommon) state.commonItems.push(item);
+            else state.personalItems[state.accs[state.cur]].push(item);
+        }
+        closeModal(); save();
+    }
+
+    function render() {
+        document.getElementById('accList').innerHTML = state.accs.map((n, i) => `<div class="acc-item ${(!state.isDash && i===state.cur)?'active':''}" onclick="selectAcc(${i})"><span>${n}</span><span class="edit-btn" onclick="editAcc(${i}, event)">✏️</span></div>`).join('');
+        const main = document.getElementById('main');
+        if(state.isDash) {
+            main.innerHTML = `<h1 class="main-title">전체 대시보드</h1><div class="dash-grid">${state.accs.map(acc => {
+                const all = [...state.commonItems, ...state.personalItems[acc]];
+                return `<div class="acc-card"><div class="acc-card-title">${acc}</div>${Object.keys(CAT_INFO).map(k => {
+                    const flt = all.filter(it => it.cat === k); if(!flt.length) return '';
+                    return `<div class="dash-row"><div class="dash-cat-label">${CAT_INFO[k].split(' ')[1]}</div><div class="dash-item-list">${flt.map(it => `<div class="dash-item ${it.done?'done':''}">• ${it.name} ${it.cat==='craft'?'('+it.sets+'세트)':''}</div>`).join('')}</div></div>`;
+                }).join('')}</div>`;
+            }).join('')}</div>`;
+        } else {
+            const acc = state.accs[state.cur];
+            const all = [...state.commonItems.map((it,i)=>({...it,oIdx:i,type:'common'})), ...state.personalItems[acc].map((it,i)=>({...it,oIdx:i,type:'personal'}))];
+            main.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;"><h1 class="main-title" style="margin:0">${acc} 관리</h1><button onclick="openModal()" style="background:var(--primary); color:white; border:none; padding:12px 25px; border-radius:15px; font-weight:bold; cursor:pointer;">+ 숙제 추가</button></div>
+            ${Object.keys(CAT_INFO).map(k => {
+                const flt = all.filter(it => it.cat === k); if(!flt.length) return '';
+                return `<div class="cat-group"><div style="color:var(--muted); font-weight:800; margin-bottom:15px;">${CAT_INFO[k]}</div><div class="hw-grid">${flt.map(it => {
+                    const s = it.sets || 1;
+                    return `<div class="card ${it.done?'done':''}">
+                        <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:bold; color:var(--muted);"><span>${it.cycle.toUpperCase()} ${it.type==='common'?'(공용)':''}</span><span onclick="openModal(${it.oIdx}, '${it.type}')" style="cursor:pointer; color:var(--primary);">EDIT</span></div>
+                        <div class="card-name" style="font-weight:900; font-size:1.3rem; margin:15px 0;">${it.name}</div>
+                        ${it.cat==='trade' ? `<div style="background:#fff9db; padding:10px; border-radius:10px; margin-bottom:10px; font-size:14px;">🔄 ${it.from || '?'} ➡️ ${it.to || '?'}</div>` : ''}
+                        ${it.cat==='craft' ? `<div class="set-control">제작 세트: <input type="number" class="set-input" min="1" value="${s}" onchange="updateSets(${it.oIdx}, '${it.type}', this.value)"></div>` : ''}
+                        <label style="cursor:pointer; font-weight:bold; display:flex; align-items:center; gap:10px;"><input type="checkbox" ${it.done?'checked':''} onchange="toggleCheck(${it.oIdx}, '${it.type}')" style="width:20px; height:20px;"> 완료</label>
+                        ${it.cat==='craft' && it.mats.length ? `<div class="calc-area"><b>📋 총 필요 재료 (${s}세트):</b>${it.mats.map(m => `<div>- ${m.name}: ${m.count * s}개</div>`).join('')}<div style="margin-top:5px; color:var(--primary); font-weight:800; border-top:1px dashed #ccc; padding-top:5px;">💰 예상 비용: ${(it.mats.reduce((a,b)=>a+(b.gold*b.count),0)*s).toLocaleString()}G</div></div>`:''}
+                    </div>`}).join('')}</div></div>`;
+            }).join('')}`;
+        }
+    }
+
+    let editIdx = -1, editType = '';
+    function selectAcc(i) { state.cur = i; state.isDash = false; save(); }
+    function showDashboard() { state.isDash = true; save(); }
+    function closeModal() { document.getElementById('hwModal').style.display='none'; document.querySelector('.overlay').style.display='none'; }
+    function toggleCheck(idx, type) { (type==='common'?state.commonItems:state.personalItems[state.accs[state.cur]])[idx].done = !(type==='common'?state.commonItems:state.personalItems[state.accs[state.cur]])[idx].done; save(); }
+    function addAcc() { const n = prompt("캐릭터 이름?"); if(n){ state.accs.push(n); state.personalItems[n]=[]; save(); } }
+    function editAcc(idx, e) { e.stopPropagation(); const old=state.accs[idx]; const n=prompt("수정할 이름?", old); if(n && n!==old){ state.personalItems[n]=state.personalItems[old]; delete state.personalItems[old]; state.accs[idx]=n; save(); } }
+    function deleteHw() { (editType==='common'?state.commonItems:state.personalItems[state.accs[state.cur]]).splice(editIdx, 1); closeModal(); save(); }
+    render();
+</script>
+</body>
+</html>
