@@ -164,7 +164,7 @@
         document.getElementById('accList').innerHTML = state.accs.map((n, i) => `<div class="acc-item ${(!state.isDash && i===state.cur)?'active':''}" onclick="selectAcc(${i})"><span>${n}</span><span class="edit-btn" onclick="editAcc(${i}, event)">✏️</span></div>`).join('');
         const main = document.getElementById('main');
         if(state.isDash) {
-            main.innerHTML = `<h1 class="main-title">전체 대시보드</h1><div class="dash-grid">${state.accs.map(acc => {
+            main.innerHTML = `<h1 class="main-title">마비노기 모바일 숙제리스트</h1><div class="dash-grid">${state.accs.map(acc => {
                 const all = [...state.commonItems, ...state.personalItems[acc]];
                 return `<div class="acc-card"><div class="acc-card-title">${acc}</div>${Object.keys(CAT_INFO).map(k => {
                     const flt = all.filter(it => it.cat === k); if(!flt.length) return '';
@@ -202,4 +202,5 @@
     render();
 </script>
 </body>
+
 </html>
