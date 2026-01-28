@@ -4,243 +4,314 @@
     <meta charset="UTF-8">
     <title>MobiAssistant</title>
     <style>
-        :root { --primary: #3b5bdb; --bg: #f8f9fa; --card: #ffffff; --text: #333; --muted: #adb5bd; --accent-blue: #5c7cfa; --done-bg: #f1f3f5; }
+        :root { --primary: #3b5bdb; --bg: #f8f9fa; --card: #ffffff; --text: #333; --muted: #adb5bd; --done-bg: #f1f3f5; --danger: #fa5252; }
         body { margin: 0; font-family: 'Pretendard', sans-serif; background: var(--bg); display: flex; height: 100vh; color: var(--text); overflow: hidden; }
-        #sidebar { width: 280px; background: white; box-shadow: 2px 0 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; z-index: 10; }
+
+        /* 사이드바 */
+        #sidebar { width: 280px; background: white; border-right: 1px solid #eee; display: flex; flex-direction: column; z-index: 10; }
         .logo-area { padding: 30px 25px; cursor: pointer; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #f1f3f5; }
         .logo-icon { width: 32px; height: 32px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
         .acc-item { padding: 12px 25px; margin: 2px 15px; border-radius: 12px; cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center; }
         .acc-item.active { background: #edf2ff; color: var(--primary); font-weight: bold; }
-        .edit-btn { opacity: 0.3; cursor: pointer; padding: 5px; }
-        #main { flex: 1; padding: 40px 60px; overflow-y: auto; scroll-behavior: smooth; }
-        .main-title { font-size: 1.8rem; font-weight: 800; margin-bottom: 40px; }
-        .dash-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px; }
-        .acc-card { background: var(--accent-blue); color: white; border-radius: 30px; padding: 30px; min-height: 400px; box-shadow: 0 15px 30px rgba(92, 124, 250, 0.2); }
-        .acc-card-title { font-size: 1.5rem; font-weight: 800; text-align: center; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 15px; }
-        .dash-row { display: flex; margin-bottom: 15px; gap: 15px; }
-        .dash-cat-label { width: 85px; font-weight: 800; font-size: 0.85rem; opacity: 0.8; flex-shrink: 0; }
-        .dash-item-list { flex: 1; font-size: 0.95rem; }
-        .dash-item.done { text-decoration: line-through; opacity: 0.6; }
-        .cat-group { margin-bottom: 50px; }
-        .hw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 30px; }
-        .card { background: white; border-radius: 24px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 2px solid transparent; transition: 0.3s; }
-        .card.done { background: var(--done-bg); border-color: #dee2e6; }
-        .card.done .card-name { text-decoration: line-through; color: #868e96; }
-        .set-control { margin: 15px 0; background: #f8f9fa; padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 10px; font-weight: bold; }
-        .set-input { width: 60px; padding: 8px; border-radius: 8px; border: 1px solid #ddd; text-align: center; }
-        .calc-area { margin-top: 15px; padding: 15px; background: rgba(59, 91, 219, 0.05); border-radius: 16px; font-size: 13px; border: 1px solid rgba(59, 91, 219, 0.1); }
-        .modal { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:40px; border-radius:35px; width:500px; box-shadow:0 40px 80px rgba(0,0,0,0.3); z-index:100; }
-        .overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.3); z-index:90; backdrop-filter: blur(8px); }
-        input, select, textarea { width: 100%; padding: 14px; margin: 8px 0; border: 1px solid #eee; border-radius: 12px; box-sizing: border-box; font-family: inherit; }
-        .btn-row { display: flex; gap: 10px; margin-top: 20px; }
-        .btn { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; transition: 0.2s; }
-        .btn-primary { background: var(--primary); color: white; }
+        .edit-icon { font-size: 10px; opacity: 0.5; padding: 4px; border: 1px solid #ccc; border-radius: 4px; }
 
-        /* [추가] 모바일 최적화 코드 (기존 레이아웃은 건드리지 않음) */
-        @media (max-width: 768px) {
-            body { flex-direction: column; overflow-y: auto; height: auto; }
-            #sidebar { width: 100%; height: auto; border-bottom: 1px solid #eee; }
-            #accList { display: flex; overflow-x: auto; padding: 10px; gap: 10px; margin-top: 0; }
-            .acc-item { margin: 0; white-space: nowrap; padding: 10px 20px; }
-            #main { padding: 20px; }
-            .hw-grid, .dash-grid { grid-template-columns: 1fr; }
-            .modal { width: 95%; padding: 25px; }
-        }
+        /* 메인 영역 */
+        #main { flex: 1; padding: 40px 60px; overflow-y: auto; }
+        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px; }
+        .grid-controls { display: flex; background: #e9ecef; padding: 4px; border-radius: 12px; }
+        .grid-btn { border: none; background: none; padding: 8px 18px; border-radius: 9px; font-size: 14px; font-weight: bold; cursor: pointer; color: #666; }
+        .grid-btn.active { background: white; color: var(--primary); box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+        .btn-ui-primary { background: var(--primary); color: white; border: none; padding: 12px 22px; border-radius: 12px; font-weight: bold; cursor: pointer; }
+
+        /* 숙제 카드 및 정렬 */
+        .cat-group { margin-bottom: 40px; }
+        .cat-title { font-weight: 800; color: var(--muted); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        .hw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; }
+        .card { background: white; border-radius: 20px; padding: 25px; border: 1px solid #eee; position: relative; }
+        .card.done { background: var(--done-bg); opacity: 0.6; }
+        
+        .done-label { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 800; margin-top: 15px; }
+        .done-label input { width: 22px; height: 22px; margin: 0; cursor: pointer; }
+
+        /* 모달 및 캐릭터 선택 그리드 */
+        .modal { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:35px; border-radius:30px; width:480px; box-shadow:0 25px 50px rgba(0,0,0,0.2); z-index:100; max-height: 85vh; overflow-y: auto; }
+        .overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:90; backdrop-filter: blur(5px); }
+        input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #eee; border-radius: 10px; box-sizing: border-box; }
+        
+        #accCheckList { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
+        .acc-chk-label { display: flex; align-items: center; padding: 12px; background: white; border: 1px solid #eee; border-radius: 12px; cursor: pointer; }
+        .acc-chk-label input { width: 18px; height: 18px; margin-right: 12px; flex-shrink: 0; }
+        .acc-chk-label span { font-size: 14px; font-weight: bold; }
+
+        /* 대시보드 */
+        .dash-grid { display: grid; gap: 20px; }
+        .acc-card { background: white; border-radius: 25px; padding: 25px; border: 1px solid #eee; }
+        .acc-card-title { font-size: 1.3rem; font-weight: 800; text-align: center; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px solid #f1f3f5; cursor: pointer; color: var(--primary); }
     </style>
 </head>
 <body>
 
 <div class="overlay" onclick="closeModal()"></div>
 
+<div class="modal" id="accModal">
+    <h2 id="accModalTitle">👤 캐릭터 설정</h2>
+    <input type="text" id="newAccName" placeholder="캐릭터 이름을 입력하세요">
+    <select id="newAccServer">
+        <option value="던컨">던컨</option><option value="라사">라사</option><option value="아이라">아이라</option>
+        <option value="데이안">데이안</option><option value="메이븐">메이븐</option><option value="알리사">알리사</option><option value="칼릭스">칼릭스</option>
+    </select>
+    <div id="accEditBtns" style="display:flex; gap:10px; margin-top:15px;">
+        <button onclick="confirmAcc()" class="btn-ui-primary" style="flex:2">저장 완료</button>
+        <button id="accDelBtn" onclick="deleteAcc()" style="flex:1; background:var(--danger); color:white; border:none; border-radius:12px; cursor:pointer; font-weight:bold;">삭제</button>
+    </div>
+</div>
+
 <div class="modal" id="hwModal">
-    <h2 style="margin-top:0">📋 숙제 설정</h2>
+    <h2 id="hwModalTitle">📋 숙제 설정</h2>
     <select id="mCat" onchange="updateModalUI()">
-        <option value="main">⚔️ 메인 컨텐츠</option>
-        <option value="trade">⚖️ 물물교환</option>
-        <option value="craft">⚒️ 제작/채집</option>
+        <option value="main">⚔️ 메인 컨텐츠</option><option value="trade">⚖️ 물물교환</option><option value="craft">⚒️ 제작/채집</option>
     </select>
-    <input type="text" id="mName" placeholder="숙제 이름을 입력하세요">
-    
-    <div id="tradeFields" style="display:none; gap:10px; display:flex; margin-bottom:10px;">
-        <input type="text" id="mFrom" placeholder="주는 물건" style="flex:1">
-        <span style="align-self:center">➡️</span>
-        <input type="text" id="mTo" placeholder="받는 물건" style="flex:1">
-    </div>
-
-    <textarea id="mDesc" placeholder="상세 설명"></textarea>
+    <input type="text" id="mName" placeholder="숙제 이름">
+    <textarea id="mDesc" placeholder="설명"></textarea>
     <select id="mCycle">
-        <option value="daily">매일 (06:00 리셋)</option>
-        <option value="weekly">매주 월요일 (06:00 리셋)</option>
+        <option value="daily">매일 (06:00 리셋)</option><option value="weekly">매주 (월요일 06:00 리셋)</option><option value="once">일회성</option>
     </select>
-
-    <div id="resFields" style="display:none;">
-        <div style="background:#f1f3f5; padding:15px; border-radius:12px; margin-bottom:15px;">
-            <label style="font-size:0.85rem; font-weight:bold; color:var(--primary);">기본 제작 세트 수</label>
-            <input type="number" id="mSets" min="1" value="1" style="margin-top:5px;">
-        </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-            <b style="font-size: 0.9rem;">💎 1세트 기준 재료</b>
-            <button onclick="addResInput()" style="border:none; padding:5px 10px; border-radius:8px; cursor:pointer;">+ 추가</button>
-        </div>
-        <div id="resContainer" style="max-height: 120px; overflow-y: auto;"></div>
+    <div id="resFields" style="display:none; margin-top:15px; border-top:1px solid #eee; padding-top:15px;">
+        <label style="font-weight:bold; font-size:13px;">⚒️ 제작 세트 및 재료</label>
+        <input type="number" id="mSets" value="1" min="1" placeholder="세트 수">
+        <div id="resContainer"></div>
+        <button onclick="addResInput()" style="width:100%; padding:10px; background:#f8f9fa; border:1px solid #eee; border-radius:10px; cursor:pointer; margin-top:10px;">+ 재료 추가</button>
     </div>
-    
-    <div class="btn-row">
-        <button class="btn btn-primary" onclick="saveHw(false)">현재 캐릭터 전용</button>
-        <button class="btn" style="background:#343a40; color:white;" onclick="saveHw(true)">전체 공용 숙제</button>
+    <div id="accSelectorArea" style="margin-top:20px; background:#f8f9fa; padding:20px; border-radius:20px;">
+        <label style="font-size:12px; font-weight:bold; color:#777;">👥 적용 캐릭터 선택</label>
+        <div id="accCheckList"></div>
     </div>
-    <button id="delBtn" onclick="deleteHw()" style="width:100%; margin-top:10px; background:none; color:#ff6b6b; border:none; cursor:pointer; font-weight:bold; display:none;">삭제하기</button>
+    <div style="display:flex; gap:10px; margin-top:25px;">
+        <button id="hwSaveBtn" class="btn-ui-primary" style="flex:1" onclick="saveHw(false)">개별 저장</button>
+        <button id="hwCommonBtn" class="btn-ui-primary" style="flex:1; background:#343a40;" onclick="saveHw(true)">공용 저장</button>
+        <button id="hwDelBtn" style="display:none; flex:0.5; background:var(--danger); color:white; border:none; border-radius:12px; cursor:pointer;" onclick="deleteHw()">삭제</button>
+    </div>
 </div>
 
 <aside id="sidebar">
     <div class="logo-area" onclick="showDashboard()"><div class="logo-icon">M</div><span style="font-weight:900;">MabiAssistant</span></div>
-    <div id="accList" style="margin-top:20px; flex:1; overflow-y:auto;"></div>
-    <button onclick="addAcc()" style="margin:20px; padding:15px; border:2px dashed #eee; background:none; border-radius:15px; cursor:pointer; color:var(--muted); font-weight:bold;">+ 캐릭터 추가</button>
+    <div id="accList" style="flex:1; overflow-y:auto; padding-top:10px;"></div>
+    <button onclick="openAccModal()" style="margin:20px; padding:15px; border:2px dashed #eee; background:none; border-radius:15px; cursor:pointer; font-weight:bold; color:var(--muted);">+ 캐릭터 추가</button>
 </aside>
 
 <main id="main"></main>
 
 <script>
     const CAT_INFO = { main: '⚔️ 메인 컨텐츠', trade: '⚖️ 물물교환', craft: '⚒️ 제작/채집' };
-    
-    // [수정] lastReset 필드 추가
-    let state = JSON.parse(localStorage.getItem('mabiFinalV17')) || { 
-        accs: [], cur: -1, commonItems: [], personalItems: {}, isDash: true, lastReset: 0 
+    let state = JSON.parse(localStorage.getItem('mabiV36')) || { 
+        accs: [], accData: {}, cur: -1, commonItems: [], personalItems: {}, isDash: true, lastReset: 0, gridCol: 3
     };
+    let editTarget = null; // 수정 모드 추적용
 
-    function save() { localStorage.setItem('mabiFinalV17', JSON.stringify(state)); render(); }
+    function save() { localStorage.setItem('mabiV36', JSON.stringify(state)); render(); }
 
-    // [추가] 06시 리셋 핵심 로직
-    function checkAndReset() {
-        const now = new Date();
-        let targetReset = new Date();
-        targetReset.setHours(6, 0, 0, 0);
-
-        // 현재가 새벽 6시 전이면 기준점은 '어제 6시'
-        if (now.getHours() < 6) targetReset.setDate(targetReset.getDate() - 1);
-
-        // 마지막 리셋 기록이 기준점보다 이전이면 리셋 실행
-        if (state.lastReset < targetReset.getTime()) {
-            state.commonItems.forEach(it => {
-                if (it.cycle === 'daily') it.done = false;
-                if (it.cycle === 'weekly' && now.getDay() === 1) it.done = false;
-            });
-            state.accs.forEach(acc => {
-                state.personalItems[acc].forEach(it => {
-                    if (it.cycle === 'daily') it.done = false;
-                    if (it.cycle === 'weekly' && now.getDay() === 1) it.done = false;
-                });
-            });
-            state.lastReset = now.getTime();
-            save();
-            console.log("06시 리셋 완료");
-        }
+    // [수정] 입력창 초기화 및 닫기
+    function closeModal() { 
+        document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); 
+        document.querySelector('.overlay').style.display = 'none';
+        editTarget = null;
+        // 필드 초기화
+        document.getElementById('newAccName').value = "";
+        document.getElementById('mName').value = "";
+        document.getElementById('mDesc').value = "";
+        document.getElementById('mSets').value = "1";
+        document.getElementById('resContainer').innerHTML = "";
     }
 
-    function updateModalUI() {
-        const cat = document.getElementById('mCat').value;
-        document.getElementById('resFields').style.display = (cat === 'craft') ? 'block' : 'none';
-        document.getElementById('tradeFields').style.display = (cat === 'trade') ? 'flex' : 'none';
-    }
-
-    function addResInput(n='', c='', g='') {
-        const div = document.createElement('div'); div.style.display="flex"; div.style.gap="5px";
-        div.innerHTML = `<input type="text" placeholder="재료" class="rn" value="${n}"><input type="number" placeholder="개" class="rc" min="0" style="width:60px" value="${c}"><input type="number" placeholder="G" class="rg" min="0" style="width:80px" value="${g}">`;
-        document.getElementById('resContainer').appendChild(div);
-    }
-
-    function openModal(idx = -1, type = 'personal') { 
-        editIdx = idx; editType = type; 
-        document.getElementById('mName').value = ""; document.getElementById('mDesc').value = "";
-        document.getElementById('mFrom').value = ""; document.getElementById('mTo').value = "";
-        document.getElementById('mCat').value = "main"; document.getElementById('mCycle').value = "daily";
-        document.getElementById('mSets').value = "1"; // [수정] 모달 세트수 초기화
-        document.getElementById('resContainer').innerHTML = ""; 
-        document.getElementById('delBtn').style.display = idx > -1 ? 'block' : 'none';
-
-        if(idx > -1) {
-            const it = (type === 'common' ? state.commonItems : state.personalItems[state.accs[state.cur]])[idx];
-            document.getElementById('mName').value = it.name; document.getElementById('mCat').value = it.cat;
-            document.getElementById('mFrom').value = it.from || ""; document.getElementById('mTo').value = it.to || "";
-            document.getElementById('mDesc').value = it.desc || ""; document.getElementById('mCycle').value = it.cycle;
-            document.getElementById('mSets').value = it.sets || 1; // [수정] 기존 세트수 불러오기
-            it.mats.forEach(m => addResInput(m.name, m.count, m.gold));
-        } else { addResInput(); }
-        updateModalUI();
-        document.getElementById('hwModal').style.display = 'block'; document.querySelector('.overlay').style.display = 'block'; 
-    }
-
-    function updateSets(idx, type, val) { 
-        const list = (type === 'common' ? state.commonItems : state.personalItems[state.accs[state.cur]]);
-        list[idx].sets = Math.max(1, Number(val) || 1); save(); 
-    }
-
-    function saveHw(isCommon) {
-        const n = document.getElementById('mName').value; if(!n) return alert("이름 필수!");
-        const ms = Array.from(document.querySelectorAll('#resContainer > div')).map(d => ({
-            name: d.querySelector('.rn').value, count: Math.max(0, Number(d.querySelector('.rc').value) || 0), gold: Math.max(0, Number(d.querySelector('.rg').value) || 0)
-        })).filter(m => m.name);
-
-        const item = { 
-            cat: document.getElementById('mCat').value, name: n, 
-            from: document.getElementById('mFrom').value, to: document.getElementById('mTo').value,
-            desc: document.getElementById('mDesc').value, cycle: document.getElementById('mCycle').value, 
-            mats: ms, 
-            sets: Math.max(1, Number(document.getElementById('mSets').value) || 1), // [수정] 모달 입력값 저장
-            done: false 
-        };
-
-        if(editIdx > -1) {
-            const list = editType === 'common' ? state.commonItems : state.personalItems[state.accs[state.cur]];
-            item.done = list[editIdx].done; list[editIdx] = item;
+    // [캐릭터] 추가 및 수정/삭제
+    function openAccModal(accName = null) {
+        const title = document.getElementById('accModalTitle');
+        const delBtn = document.getElementById('accDelBtn');
+        if(accName) {
+            title.innerText = "👤 캐릭터 수정";
+            document.getElementById('newAccName').value = accName;
+            document.getElementById('newAccServer').value = state.accData[accName].server;
+            delBtn.style.display = "block";
+            editTarget = accName;
         } else {
-            if(isCommon) state.commonItems.push(item);
-            else state.personalItems[state.accs[state.cur]].push(item);
+            title.innerText = "👤 캐릭터 추가";
+            document.getElementById('newAccName').value = "";
+            delBtn.style.display = "none";
+        }
+        document.getElementById('accModal').style.display = 'block'; 
+        document.querySelector('.overlay').style.display = 'block';
+    }
+
+    function confirmAcc() {
+        const newName = document.getElementById('newAccName').value.trim();
+        const server = document.getElementById('newAccServer').value;
+        if(!newName) return;
+
+        if(editTarget) { // 수정 모드
+            if(editTarget !== newName) {
+                state.accs[state.accs.indexOf(editTarget)] = newName;
+                state.accData[newName] = { server };
+                delete state.accData[editTarget];
+                state.personalItems[newName] = state.personalItems[editTarget];
+                delete state.personalItems[editTarget];
+            } else {
+                state.accData[newName].server = server;
+            }
+        } else { // 추가 모드
+            if(!state.accs.includes(newName)) {
+                state.accs.push(newName);
+                state.accData[newName] = { server };
+                state.personalItems[newName] = [];
+            }
         }
         closeModal(); save();
     }
 
-    function render() {
-        document.getElementById('accList').innerHTML = state.accs.map((n, i) => `<div class="acc-item ${(!state.isDash && i===state.cur)?'active':''}" onclick="selectAcc(${i})"><span>${n}</span><span class="edit-btn" onclick="editAcc(${i}, event)">✏️</span></div>`).join('');
-        const main = document.getElementById('main');
-        if(state.isDash) {
-            main.innerHTML = `<h1 class="main-title">마비노기 모바일 숙제리스트</h1><div class="dash-grid">${state.accs.map(acc => {
-                const all = [...state.commonItems, ...state.personalItems[acc]];
-                return `<div class="acc-card"><div class="acc-card-title">${acc}</div>${Object.keys(CAT_INFO).map(k => {
-                    const flt = all.filter(it => it.cat === k); if(!flt.length) return '';
-                    return `<div class="dash-row"><div class="dash-cat-label">${CAT_INFO[k].split(' ')[1]}</div><div class="dash-item-list">${flt.map(it => `<div class="dash-item ${it.done?'done':''}">• ${it.name} ${it.cat==='craft'?'('+it.sets+'세트)':''}</div>`).join('')}</div></div>`;
-                }).join('')}</div>`;
-            }).join('')}</div>`;
+    function deleteAcc() {
+        if(!editTarget || !confirm("정말 삭제할까요?")) return;
+        state.accs = state.accs.filter(a => a !== editTarget);
+        delete state.accData[editTarget];
+        delete state.personalItems[editTarget];
+        state.cur = -1;
+        state.isDash = true;
+        closeModal(); save();
+    }
+
+    // [숙제] 추가 및 수정/삭제
+    function openHwModal(item = null, idx = null, type = null) {
+        const delBtn = document.getElementById('hwDelBtn');
+        const commonBtn = document.getElementById('hwCommonBtn');
+        const selector = document.getElementById('accSelectorArea');
+
+        document.getElementById('resContainer').innerHTML = "";
+        
+        if(item) { // 수정 모드
+            editTarget = { idx, type };
+            document.getElementById('mName').value = item.name;
+            document.getElementById('mDesc').value = item.desc || "";
+            document.getElementById('mCat').value = item.cat;
+            document.getElementById('mCycle').value = item.cycle;
+            document.getElementById('mSets').value = item.sets || 1;
+            item.mats?.forEach(m => addResInput(m.name, m.count, m.gold));
+            delBtn.style.display = "block";
+            commonBtn.style.display = "none";
+            selector.style.display = "none";
+        } else { // 추가 모드
+            addResInput();
+            delBtn.style.display = "none";
+            commonBtn.style.display = "block";
+            selector.style.display = "block";
+            document.getElementById('accCheckList').innerHTML = state.accs.map(acc => `
+                <label class="acc-chk-label"><input type="checkbox" class="acc-chk" value="${acc}" ${state.accs[state.cur]===acc?'checked':''}><span>${acc}</span></label>
+            `).join('');
+        }
+        updateModalUI();
+        document.getElementById('hwModal').style.display = 'block'; 
+        document.querySelector('.overlay').style.display = 'block';
+    }
+
+    function addResInput(n='', c='', g='') {
+        const div = document.createElement('div');
+        div.className = "res-row";
+        div.innerHTML = `<input type="text" placeholder="재료" class="rn" value="${n}" style="flex:2"><input type="number" placeholder="개" class="rc" value="${c}" style="flex:1"><input type="number" placeholder="G" class="rg" value="${g}" style="flex:1.5">`;
+        document.getElementById('resContainer').appendChild(div);
+    }
+
+    function updateModalUI() { document.getElementById('resFields').style.display = (document.getElementById('mCat').value === 'craft') ? 'block' : 'none'; }
+
+    function saveHw(toCommon) {
+        const n = document.getElementById('mName').value.trim(); if(!n) return;
+        const mats = Array.from(document.querySelectorAll('.res-row')).map(row => ({
+            name: row.querySelector('.rn').value, count: Number(row.querySelector('.rc').value)||0, gold: Number(row.querySelector('.rg').value)||0
+        })).filter(m => m.name);
+
+        const newItem = { 
+            cat: document.getElementById('mCat').value, name: n, desc: document.getElementById('mDesc').value, 
+            cycle: document.getElementById('mCycle').value, mats, sets: Number(document.getElementById('mSets').value)||1, 
+            done: editTarget ? (editTarget.type === 'common' ? state.commonItems[editTarget.idx].done : state.personalItems[state.accs[state.cur]][editTarget.idx].done) : false
+        };
+
+        if(editTarget) {
+            if(editTarget.type === 'common') state.commonItems[editTarget.idx] = newItem;
+            else state.personalItems[state.accs[state.cur]][editTarget.idx] = newItem;
         } else {
-            const acc = state.accs[state.cur];
-            const all = [...state.commonItems.map((it,i)=>({...it,oIdx:i,type:'common'})), ...state.personalItems[acc].map((it,i)=>({...it,oIdx:i,type:'personal'}))];
-            main.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;"><h1 class="main-title" style="margin:0">${acc} 관리</h1><button onclick="openModal()" style="background:var(--primary); color:white; border:none; padding:12px 25px; border-radius:15px; font-weight:bold; cursor:pointer;">+ 숙제 추가</button></div>
-            ${Object.keys(CAT_INFO).map(k => {
-                const flt = all.filter(it => it.cat === k); if(!flt.length) return '';
-                return `<div class="cat-group"><div style="color:var(--muted); font-weight:800; margin-bottom:15px;">${CAT_INFO[k]}</div><div class="hw-grid">${flt.map(it => {
-                    const s = it.sets || 1;
-                    return `<div class="card ${it.done?'done':''}">
-                        <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:bold; color:var(--muted);"><span>${it.cycle.toUpperCase()} ${it.type==='common'?'(공용)':''}</span><span onclick="openModal(${it.oIdx}, '${it.type}')" style="cursor:pointer; color:var(--primary);">EDIT</span></div>
-                        <div class="card-name" style="font-weight:900; font-size:1.3rem; margin:15px 0;">${it.name}</div>
-                        ${it.cat==='trade' ? `<div style="background:#fff9db; padding:10px; border-radius:10px; margin-bottom:10px; font-size:14px;">🔄 ${it.from || '?'} ➡️ ${it.to || '?'}</div>` : ''}
-                        ${it.cat==='craft' ? `<div class="set-control">제작 세트: <input type="number" class="set-input" min="1" value="${s}" onchange="updateSets(${it.oIdx}, '${it.type}', this.value)"></div>` : ''}
-                        <label style="cursor:pointer; font-weight:bold; display:flex; align-items:center; gap:10px;"><input type="checkbox" ${it.done?'checked':''} onchange="toggleCheck(${it.oIdx}, '${it.type}')" style="width:20px; height:20px;"> 완료</label>
-                        ${it.cat==='craft' && it.mats.length ? `<div class="calc-area"><b>📋 총 필요 재료 (${s}세트):</b>${it.mats.map(m => `<div>- ${m.name}: ${m.count * s}개</div>`).join('')}<div style="margin-top:5px; color:var(--primary); font-weight:800; border-top:1px dashed #ccc; padding-top:5px;">💰 예상 비용: ${(it.mats.reduce((a,b)=>a+(b.gold*b.count),0)*s).toLocaleString()}G</div></div>`:''}
-                    </div>`}).join('')}</div></div>`;
-            }).join('')}`;
+            if(toCommon) state.commonItems.push(newItem);
+            else Array.from(document.querySelectorAll('.acc-chk:checked')).map(cb => cb.value).forEach(acc => state.personalItems[acc].push(JSON.parse(JSON.stringify(newItem))));
+        }
+        closeModal(); save();
+    }
+
+    function deleteHw() {
+        if(!editTarget || !confirm("숙제를 삭제할까요?")) return;
+        if(editTarget.type === 'common') state.commonItems.splice(editTarget.idx, 1);
+        else state.personalItems[state.accs[state.cur]].splice(editTarget.idx, 1);
+        closeModal(); save();
+    }
+
+    // [시스템] 06:00 리셋
+    function checkAndReset() {
+        const now = new Date();
+        let resetPoint = new Date();
+        resetPoint.setHours(6, 0, 0, 0);
+        if (now.getHours() < 6) resetPoint.setDate(resetPoint.getDate() - 1);
+        if (state.lastReset < resetPoint.getTime()) {
+            const isMon = (now.getDay() === 1);
+            const reset = (list) => list.map(it => { if(it.cycle==='daily' || (it.cycle==='weekly' && isMon)) it.done=false; return it; });
+            state.commonItems = reset(state.commonItems);
+            state.accs.forEach(acc => state.personalItems[acc] = reset(state.personalItems[acc]));
+            state.lastReset = now.getTime();
+            save();
         }
     }
 
-    let editIdx = -1, editType = '';
-    function selectAcc(i) { state.cur = i; state.isDash = false; save(); }
+    function render() {
+        document.getElementById('accList').innerHTML = state.accs.map(n => `
+            <div class="acc-item ${(!state.isDash && state.accs[state.cur]===n)?'active':''}" onclick="selectAcc('${n}')">
+                <span>${n}</span><span class="edit-icon" onclick="event.stopPropagation(); openAccModal('${n}')">⚙️</span>
+            </div>`).join('');
+
+        const main = document.getElementById('main');
+        if(state.isDash) {
+            main.innerHTML = `<div class="header-row"><h1>모비노기 숙제 체크리스트</h1><div class="grid-controls">${[2,3,4].map(v => `<button class="grid-btn ${state.gridCol===v?'active':''}" onclick="state.gridCol=${v};save()">${v}열</button>`).join('')}</div></div>
+                <div class="dash-grid" style="grid-template-columns: repeat(${state.gridCol}, 1fr)">
+                ${state.accs.map(acc => {
+                    const all = [...state.commonItems, ...(state.personalItems[acc] || [])];
+                    return `<div class="acc-card"><div class="acc-card-title" onclick="selectAcc('${acc}')">${acc}</div>
+                        ${Object.keys(CAT_INFO).map(cat => {
+                            const items = all.filter(it => it.cat === cat);
+                            return items.length ? `<div style="margin-bottom:10px;"><small style="font-weight:bold;color:var(--muted)">${CAT_INFO[cat].split(' ')[1]}</small>${items.map(it => `<div style="font-size:12px;${it.done?'opacity:0.3;text-decoration:line-through':''}">• ${it.name}</div>`).join('')}</div>` : '';
+                        }).join('')}</div>`;
+                }).join('')}</div>`;
+        } else {
+            const acc = state.accs[state.cur];
+            const all = [...state.commonItems.map((it, i) => ({...it, oIdx: i, type: 'common'})), ...(state.personalItems[acc] || []).map((it, i) => ({...it, oIdx: i, type: 'personal'}))];
+            main.innerHTML = `<div class="header-row"><h1>${acc} <small style="font-size:14px;color:var(--muted)">(${state.accData[acc].server})</small></h1><button onclick="openHwModal()" class="btn-ui-primary">+ 숙제 추가</button></div>
+                ${Object.keys(CAT_INFO).map(cat => {
+                    const filtered = all.filter(it => it.cat === cat);
+                    return filtered.length ? `<div class="cat-group"><div class="cat-title">${CAT_INFO[cat]}</div><div class="hw-grid">${filtered.map(it => {
+                        const totalGold = it.mats?.reduce((s, m) => s + (m.gold * m.count * it.sets), 0) || 0;
+                        return `<div class="card ${it.done?'done':''}">
+                            <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:bold; color:var(--muted);"><span>${it.cycle.toUpperCase()}</span><span style="cursor:pointer; color:var(--primary)" onclick='openHwModal(${JSON.stringify(it)}, ${it.oIdx}, "${it.type}")'>EDIT</span></div>
+                            <div style="font-weight:900; font-size:1.4rem; margin:10px 0;">${it.name}</div>
+                            <label class="done-label"><input type="checkbox" ${it.done?'checked':''} onchange="toggleCheck(${it.oIdx}, '${it.type}')"><span>완료</span></label>
+                            ${it.cat==='craft' ? `<div style="margin-top:15px; font-size:12px; padding:12px; background:#f8f9fa; border-radius:12px;">
+                                <div style="font-weight:bold; color:var(--primary); margin-bottom:5px;">📊 합산 결과 (${it.sets}세트)</div>
+                                ${it.mats.map(m => `<div>${m.name}: ${m.count * it.sets}개</div>`).join('')}
+                                <div style="margin-top:8px; border-top:1px dashed #ccc; pt:5px; font-weight:bold;">총 비용: ${totalGold.toLocaleString()} G</div>
+                            </div>` : ''}
+                        </div>`}).join('')}</div></div>` : '';
+                }).join('')}`;
+        }
+    }
+
+    function toggleCheck(idx, type) {
+        const list = (type === 'common' ? state.commonItems : state.personalItems[state.accs[state.cur]]);
+        list[idx].done = !list[idx].done; save();
+    }
     function showDashboard() { state.isDash = true; save(); }
-    function closeModal() { document.getElementById('hwModal').style.display='none'; document.querySelector('.overlay').style.display='none'; }
-    function toggleCheck(idx, type) { (type==='common'?state.commonItems:state.personalItems[state.accs[state.cur]])[idx].done = !(type==='common'?state.commonItems:state.personalItems[state.accs[state.cur]])[idx].done; save(); }
-    function addAcc() { const n = prompt("캐릭터 이름?"); if(n){ state.accs.push(n); state.personalItems[n]=[]; save(); } }
-    function editAcc(idx, e) { e.stopPropagation(); const old=state.accs[idx]; const n=prompt("수정할 이름?", old); if(n && n!==old){ state.personalItems[n]=state.personalItems[old]; delete state.personalItems[old]; state.accs[idx]=n; save(); } }
-    function deleteHw() { (editType==='common'?state.commonItems:state.personalItems[state.accs[state.cur]]).splice(editIdx, 1); closeModal(); save(); }
-    render();
+    function selectAcc(name) { state.cur = state.accs.indexOf(name); state.isDash = false; save(); }
+
+    checkAndReset(); setInterval(checkAndReset, 60000); render();
 </script>
 </body>
-
 </html>
