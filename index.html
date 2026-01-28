@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>MabiAssistant</title>
+    <title>MobiAssistant</title>
     <style>
         :root { --primary: #3b5bdb; --bg: #f8f9fa; --card: #ffffff; --text: #333; --muted: #adb5bd; --accent-blue: #5c7cfa; --done-bg: #f1f3f5; }
         body { margin: 0; font-family: 'Pretendard', sans-serif; background: var(--bg); display: flex; height: 100vh; color: var(--text); overflow: hidden; }
@@ -35,6 +35,17 @@
         .btn-row { display: flex; gap: 10px; margin-top: 20px; }
         .btn { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; transition: 0.2s; }
         .btn-primary { background: var(--primary); color: white; }
+
+        /* [추가] 모바일 최적화 코드 (기존 레이아웃은 건드리지 않음) */
+        @media (max-width: 768px) {
+            body { flex-direction: column; overflow-y: auto; height: auto; }
+            #sidebar { width: 100%; height: auto; border-bottom: 1px solid #eee; }
+            #accList { display: flex; overflow-x: auto; padding: 10px; gap: 10px; margin-top: 0; }
+            .acc-item { margin: 0; white-space: nowrap; padding: 10px 20px; }
+            #main { padding: 20px; }
+            .hw-grid, .dash-grid { grid-template-columns: 1fr; }
+            .modal { width: 95%; padding: 25px; }
+        }
     </style>
 </head>
 <body>
@@ -91,11 +102,40 @@
 
 <script>
     const CAT_INFO = { main: '⚔️ 메인 컨텐츠', trade: '⚖️ 물물교환', craft: '⚒️ 제작/채집' };
-    let state = JSON.parse(localStorage.getItem('mabiFinalV16')) || { 
-        accs: [], cur: -1, commonItems: [], personalItems: {}, isDash: true, lastReset: Date.now() 
+    
+    // [수정] lastReset 필드 추가
+    let state = JSON.parse(localStorage.getItem('mabiFinalV17')) || { 
+        accs: [], cur: -1, commonItems: [], personalItems: {}, isDash: true, lastReset: 0 
     };
 
-    function save() { localStorage.setItem('mabiFinalV16', JSON.stringify(state)); render(); }
+    function save() { localStorage.setItem('mabiFinalV17', JSON.stringify(state)); render(); }
+
+    // [추가] 06시 리셋 핵심 로직
+    function checkAndReset() {
+        const now = new Date();
+        let targetReset = new Date();
+        targetReset.setHours(6, 0, 0, 0);
+
+        // 현재가 새벽 6시 전이면 기준점은 '어제 6시'
+        if (now.getHours() < 6) targetReset.setDate(targetReset.getDate() - 1);
+
+        // 마지막 리셋 기록이 기준점보다 이전이면 리셋 실행
+        if (state.lastReset < targetReset.getTime()) {
+            state.commonItems.forEach(it => {
+                if (it.cycle === 'daily') it.done = false;
+                if (it.cycle === 'weekly' && now.getDay() === 1) it.done = false;
+            });
+            state.accs.forEach(acc => {
+                state.personalItems[acc].forEach(it => {
+                    if (it.cycle === 'daily') it.done = false;
+                    if (it.cycle === 'weekly' && now.getDay() === 1) it.done = false;
+                });
+            });
+            state.lastReset = now.getTime();
+            save();
+            console.log("06시 리셋 완료");
+        }
+    }
 
     function updateModalUI() {
         const cat = document.getElementById('mCat').value;
